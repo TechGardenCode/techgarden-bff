@@ -5,7 +5,7 @@ server:
         http-only: true
         secure: true
         same-site: Lax
-  forward-headers-strategy: framework
+  forward-headers-strategy: NATIVE
 
 spring:
   application:
