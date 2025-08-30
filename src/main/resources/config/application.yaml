@@ -5,6 +5,7 @@ server:
         http-only: true
         secure: true
         same-site: Lax
+  forward-headers-strategy: framework
 spring:
   application:
     name: techgarden-bff
