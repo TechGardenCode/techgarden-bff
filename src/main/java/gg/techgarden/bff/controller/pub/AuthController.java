@@ -1,5 +1,6 @@
 package gg.techgarden.bff.controller.pub;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -20,7 +21,7 @@ public class AuthController {
 
     // optional: /api/login -> start OIDC
     @GetMapping("/login")
-    public void login(HttpServletResponse res) throws IOException {
-        res.sendRedirect("/api/oauth2/authorization/bff");
+    public void login(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        res.sendRedirect(req.getScheme() + "://" + req.getHeader("host") + "/api/oauth2/authorization/bff");
     }
 }
