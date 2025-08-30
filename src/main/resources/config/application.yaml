@@ -6,6 +6,7 @@ server:
         secure: true
         same-site: Lax
   forward-headers-strategy: framework
+
 spring:
   application:
     name: techgarden-bff
@@ -36,7 +37,7 @@ spring:
             client-id: bff
             client-secret: ${BFF_CLIENT_SECRET}
             authorization-grant-type: authorization_code
-            redirect-uri: ${BFF_BASE_URL:{baseUrl}/api/login/oauth2/code/{registrationId}}
+            redirect-uri: "{baseUrl}/api/login/oauth2/code/{registrationId}"
             scope:
               - openid
               - profile
