@@ -1,40 +1,42 @@
-//package gg.techgarden.bff.config;
-//
-//import gg.techgarden.bff.security.StripBrowserAuthHeaderFilter;
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Configuration;
-//import org.springframework.http.HttpMethod;
-//import org.springframework.security.config.Customizer;
-//import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-//import org.springframework.security.web.SecurityFilterChain;
-//import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-//
-//@Configuration
-//public class SecurityConfig {
-//
-//    @Bean
-//    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .csrf(csrf -> csrf
-//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-//                )
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/login/**", "/oauth2/**", "/auth/**", "/actuator/**", "/assets/**").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/me").authenticated()
-//                        .anyRequest().authenticated()
-//                )
-//                .headers(h -> h
-//                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
-//                        .frameOptions(frame -> frame.deny())
-//                        .xssProtection(Customizer.withDefaults())
-//                        .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).preload(true))
-//                )
-//                .oauth2Login(Customizer.withDefaults())
-//                .logout(lo -> lo.logoutUrl("/auth/logout"));
-//
-//        // Block any Authorization header sent by the browser
-//        http.addFilterBefore(new StripBrowserAuthHeaderFilter(), org.springframework.security.web.authentication.AnonymousAuthenticationFilter.class);
-//
-//        return http.build();
-//    }
-//}
+package gg.techgarden.bff.config;
+
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/blog/posts/metadata").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/blog/posts/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(
+                        e -> e.authenticationEntryPoint(
+                                (request, response, authException) ->
+                                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                        )
+                )
+                .oauth2Login(o -> o
+                        .loginPage("/api/auth/login")
+                        .authorizationEndpoint(a -> a.baseUri("/oauth2/authorization"))
+                        .redirectionEndpoint(r -> r.baseUri("/login/oauth2/code/*"))
+                )
+                .logout(l -> l.logoutUrl("/auth/logout"))
+                .oauth2Client(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+}
