@@ -19,6 +19,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/login/oauth2/code/*").permitAll()
+                        .requestMatchers("/oauth2/authorization/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blog/posts/metadata").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blog/posts/**").permitAll()
                         .anyRequest().authenticated()

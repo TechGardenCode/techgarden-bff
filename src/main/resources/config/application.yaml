@@ -30,7 +30,7 @@ spring:
       client:
         provider:
           keycloak:
-            issuer-uri: https://sso.techgarden.gg/realms/techgarden
+            issuer-uri: https://sso.dev.techgarden.gg/realms/techgarden
         registration:
           bff:
             provider: keycloak
