@@ -30,7 +30,6 @@ public class SecurityConfig {
                         .requestMatchers("/test/**").authenticated()
                         .anyRequest().authenticated()
                 )
-//                .sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .oauth2Login(Customizer.withDefaults())
                 .oauth2Client(Customizer.withDefaults())
                 .logout(logout -> logout
