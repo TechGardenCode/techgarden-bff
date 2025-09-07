@@ -5,6 +5,8 @@ server:
         http-only: true
         secure: true
         same-site: Lax
+        max-age: 30d
+      timeout: 30d
   forward-headers-strategy: NATIVE
 
 spring:
@@ -21,6 +23,7 @@ spring:
                 - Path=/blog/**
               filters:
                 - RewritePath=/blog/?(?<segment>.*), /$\{segment}
+                - TokenRelay=
   data:
     redis:
       host: localhost
@@ -42,11 +45,13 @@ spring:
               - openid
               - profile
               - email
-              - offline_access
   session:
     store-type: redis
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: gateway,health,info
+logging:
+  level:
+    org.springframework.web.client.RestClient: TRACE

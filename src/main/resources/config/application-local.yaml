@@ -10,3 +10,4 @@ spring:
                 - Path=/blog/**
               filters:
                 - RewritePath=/blog/?(?<segment>.*), /$\{segment}
+                - TokenRelay=
