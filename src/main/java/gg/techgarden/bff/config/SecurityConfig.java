@@ -30,6 +30,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blog/posts/metadata").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blog/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/blog/feed/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/profile/profiles/**").permitAll()
                         .requestMatchers("/blog/**").authenticated()
                         .requestMatchers("/test/**").authenticated()
