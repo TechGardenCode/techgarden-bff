@@ -1,33 +1,28 @@
 package gg.techgarden.bff.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.*;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Component
+@RequiredArgsConstructor
 public class OutboundClients {
 
     private final OAuth2AuthorizedClientManager clientManager;
     private final OAuth2AuthorizedClientService clientService;
+    private final OAuth2AuthorizedClientRepository clientRepository;
     private final TokenExchangeService tokenExchangeService;
     private final RestClient.Builder restBuilder;
 
-    public OutboundClients(
-            OAuth2AuthorizedClientManager clientManager,
-            OAuth2AuthorizedClientService clientService,
-            TokenExchangeService tokenExchangeService,
-            RestClient.Builder restBuilder) {
-        this.clientManager = clientManager;
-        this.clientService = clientService;
-        this.tokenExchangeService = tokenExchangeService;
-        this.restBuilder = restBuilder;
-    }
 
     /** Fetch current user's access token (the BFF client) from the session store. */
-    private String currentUserAccessToken(Authentication auth) {
-        var client = clientService.loadAuthorizedClient("bff", auth.getName());
+    private String currentUserAccessToken(Authentication auth, HttpServletRequest request) {
+        var client = clientRepository.loadAuthorizedClient("bff", auth, request);
         if (client == null || client.getAccessToken() == null) {
             throw new IllegalStateException("No authorized client for current user");
         }
@@ -55,9 +50,9 @@ public class OutboundClients {
     }
 
     /** Example: call Profile with exchanged user token. */
-    public RestClient profileClient(Authentication auth) {
+    public RestClient profileClient(Authentication auth, HttpServletRequest request) {
         var exchanged = tokenExchangeService.exchangeUserTokenForAudience(
-                currentUserAccessToken(auth),
+                currentUserAccessToken(auth, request),
                 ApiTargets.PROFILE_AUD,
                 null
         );

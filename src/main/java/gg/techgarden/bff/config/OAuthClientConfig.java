@@ -3,33 +3,46 @@ package gg.techgarden.bff.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.*;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2ClientCredentialsGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.RestClientClientCredentialsTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 
 @Configuration
 public class OAuthClientConfig {
 
-    @Bean
-    public OAuth2AuthorizedClientService authorizedClientService(
-            ClientRegistrationRepository repo) {
-        return new InMemoryOAuth2AuthorizedClientService(repo);
-    }
-
-    /** For user flows (resolves current user's authorized client) and for client-credentials. */
+    /**
+     * For user flows (resolves current user's authorized client) and for client-credentials.
+     */
     @Bean
     public OAuth2AuthorizedClientManager authorizedClientManager(
-            ClientRegistrationRepository repo,
-            OAuth2AuthorizedClientService svc) {
+            ClientRegistrationRepository clientRegistrationRepository,
+            OAuth2AuthorizedClientRepository authorizedClientRepository) {
 
-        var provider = OAuth2AuthorizedClientProviderBuilder.builder()
-                .authorizationCode()
-                .refreshToken()
-                .clientCredentials()
-                .build();
+        OAuth2AuthorizedClientProvider authorizedClientProvider =
+                OAuth2AuthorizedClientProviderBuilder.builder()
+                        .authorizationCode()
+                        .refreshToken()
+                        .clientCredentials()
+                        .build();
 
-        var manager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(repo, svc);
-        manager.setAuthorizedClientProvider(provider);
-        return manager;
+        DefaultOAuth2AuthorizedClientManager authorizedClientManager =
+                new DefaultOAuth2AuthorizedClientManager(
+                        clientRegistrationRepository, authorizedClientRepository);
+        authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+        return authorizedClientManager;
+    }
+
+    @Bean
+    public OAuth2AuthorizedClientRepository authorizedClientRepository() {
+        return new HttpSessionOAuth2AuthorizedClientRepository();
+    }
+
+    @Bean
+    public OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> accessTokenResponseClient() {
+        return new RestClientClientCredentialsTokenResponseClient();
     }
 }

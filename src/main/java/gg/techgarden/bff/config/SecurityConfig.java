@@ -1,6 +1,7 @@
 package gg.techgarden.bff.config;
 
 import gg.techgarden.bff.security.SpaCsrfTokenRequestHandler;
+import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,9 +15,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @Slf4j
@@ -31,11 +30,29 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blog/posts/metadata").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blog/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/profile/profiles/**").permitAll()
                         .requestMatchers("/blog/**").authenticated()
                         .requestMatchers("/test/**").authenticated()
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(Customizer.withDefaults())
+                .oauth2Login(login -> login
+                        .successHandler((req, res, auth) -> {
+                            String continueUrl = "/";
+                            if (req.getCookies() != null) {
+                                var continueCookie =  java.util.Arrays.stream(req.getCookies())
+                                        .filter(cookie -> cookie.getName().equals("tg_continue"))
+                                        .findFirst();
+                                if (continueCookie.isPresent()) {
+                                    continueUrl = continueCookie.get().getValue();
+                                    Cookie clearCookie = new Cookie("tg_continue", null);
+                                    clearCookie.setPath("/");
+                                    clearCookie.setMaxAge(0);
+                                    res.addCookie(clearCookie);
+                                }
+                            }
+                            res.sendRedirect(continueUrl);
+                        })
+                )
                 .oauth2Client(Customizer.withDefaults())
                 .logout(logout -> logout
                         .logoutRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, "/logout"))

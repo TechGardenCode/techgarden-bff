@@ -5,10 +5,9 @@ server:
         http-only: true
         secure: true
         same-site: Lax
-        max-age: 30d
-      timeout: 30d
+        max-age: 7d
+      timeout: 7d
   forward-headers-strategy: NATIVE
-
 spring:
   application:
     name: techgarden-bff
@@ -24,10 +23,17 @@ spring:
               filters:
                 - RewritePath=/blog/?(?<segment>.*), /$\{segment}
                 - TokenRelay=
+            - id: profile
+              uri: http://techgarden-profile:8080
+              predicates:
+                - Path=/profile/**
+              filters:
+                - RewritePath=/profile/?(?<segment>.*), /$\{segment}
+                - TokenRelay=
   data:
     redis:
-      host: ${REDIS_HOST:redis.techgarden.svc.cluster.local}
-      port: 6379
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
   security:
     oauth2:
       client:
@@ -45,8 +51,6 @@ spring:
               - openid
               - profile
               - email
-  session:
-    store-type: redis
 management:
   endpoints:
     web:

@@ -11,6 +11,13 @@ spring:
               filters:
                 - RewritePath=/blog/?(?<segment>.*), /$\{segment}
                 - TokenRelay=
+            - id: profile
+              uri: http://localhost:8082
+              predicates:
+                - Path=/profile/**
+              filters:
+                - RewritePath=/profile/?(?<segment>.*), /$\{segment}
+                - TokenRelay=
   data:
     redis:
       host: localhost
